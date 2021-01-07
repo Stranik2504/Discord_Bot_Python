@@ -371,9 +371,7 @@ def add_song_in_playlist(guild_id, num: int):
     if num > 5 or num < 1:
         return [False, 'Не правильный номер']
 
-    print(1)
     add_song(guild_id, 'https://www.youtube.com/watch?v=' + SearchListSong.pop(str(guild_id))[num - 1]['id'])
-    print(2)
 
     return [True, 'Песня успешно добавленна в плейлист']
 

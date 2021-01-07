@@ -90,7 +90,9 @@ async def play(ctx):
                 if output[0] and (not ctx.voice_client):
                     await join_in_voice(ctx)
                     await ctx.send(output[1])
-                    await ctx.send(Music_model.play(text[1:], ctx.guild.id, ctx.voice_client))
+                    output = Music_model.start_play(ctx.guild.id, ctx.voice_client)
+                    if not output == '' and not output == ' ' and output:
+                        await ctx.send(output)
                 elif ctx.voice_client:
                     if not ctx.voice_client.is_playing() and not ctx.voice_client.is_paused():
                         await join_in_voice(ctx)
@@ -144,7 +146,7 @@ async def history(ctx):
                 help='Песня, котоаря играет')
 async def now_playing(ctx):
     song = Music_model.get_current_cong(ctx.guild.id)
-    await ctx.send('Name song(playlist): ' + song['name'] + ', url: ' + song['url'])
+    await ctx.send('```Name song(playlist): ' + song['name'] + ', url: ' + song['url'] + '```')
 
 
 @client.command(pass_context=True, aliases=['Loop', 'LOOP', 'looping', 'Looping', 'LOOPING'], help='Повторение '

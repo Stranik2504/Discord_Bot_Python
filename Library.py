@@ -31,9 +31,8 @@ def save_file(filename, save_object):
 
 
 def search_song(name_song: str):
-    response = requests.get('https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&fields=items(id,'
-                            'snippet)&' + name_song + '&key= '
-                            + API_KEY_GOOGLE)
+    response = requests.get('https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&q=' + name_song +
+                            '&key= ' + API_KEY_GOOGLE)
 
     list_songs = list()
 
