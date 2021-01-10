@@ -7,6 +7,8 @@ from Library import *
 
 ListSong = dict()
 SearchListSong = dict()
+SearchMessageIds = dict()
+MusicChannelConnection = dict()
 History = dict()
 
 
@@ -175,7 +177,9 @@ def add_song_history(guild_id, url):
 
 
 def leave(guild_id, voice):
-    ListSong[str(guild_id)]['is_skip'] = 'true'
+    if ListSong:
+        if ListSong.get(str(guild_id)):
+            ListSong[str(guild_id)]['is_skip'] = 'true'
     voice.stop()
 
 
@@ -309,7 +313,7 @@ def set_looping(guild_id, looping: str):
 
 def get_looping(guild_id):
     if ListSong and ListSong.get(str(guild_id)):
-        return 'Повторение: ' + ListSong[str(guild_id)]['looping']
+        return 'Повторение(off/single/all): ' + ListSong[str(guild_id)]['looping']
     else:
         return 'Очередь не найдена'
 
@@ -363,6 +367,14 @@ def search(guild_id, name_song: str):
     return results
 
 
+def add_message(guild_id, message_id):
+    SearchMessageIds[str(guild_id)] = message_id
+
+
+def pop_message(guild_id):
+    return SearchMessageIds.pop(str(guild_id))
+
+
 def is_songs_in_search(guild_id):
     return bool(SearchListSong.get(str(guild_id)))
 
@@ -374,6 +386,38 @@ def add_song_in_playlist(guild_id, num: int):
     add_song(guild_id, 'https://www.youtube.com/watch?v=' + SearchListSong.pop(str(guild_id))[num - 1]['id'])
 
     return [True, 'Песня успешно добавленна в плейлист']
+
+
+def join(guild_id, voice_channel_id, channel_id):
+    if not MusicChannelConnection.get(str(guild_id)):
+        MusicChannelConnection[str(guild_id)] = dict(voice_channel_id=voice_channel_id, channel_id=channel_id)
+    else:
+        MusicChannelConnection[str(guild_id)]['voice_channel_id'] = voice_channel_id
+        MusicChannelConnection[str(guild_id)]['channel_id'] = channel_id
+
+
+def rejoin(guild_id, voice_channel_id):
+    if MusicChannelConnection.get(str(guild_id)):
+        MusicChannelConnection[str(guild_id)]['voice_channel_id'] = voice_channel_id
+
+
+def is_connect_in_this_guild(guild_id):
+    if MusicChannelConnection.get(str(guild_id)):
+        return bool(MusicChannelConnection.get(str(guild_id)))
+
+    return None
+
+
+def get_voice_connection(guild_id):
+    if MusicChannelConnection.get(str(guild_id)):
+        return MusicChannelConnection[str(guild_id)]['voice_channel_id'], MusicChannelConnection[str(guild_id)]['channel_id']
+
+    return None
+
+
+def voice_disconnected(guild_id):
+    if MusicChannelConnection.get(str(guild_id)):
+        MusicChannelConnection.pop(str(guild_id))
 
 
 def disconnected():

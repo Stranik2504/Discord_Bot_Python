@@ -16,9 +16,11 @@ async def join_in_voice(ctx):
     if ctx.voice_client:
         if ctx.voice_client.channel != channel:
             await ctx.voice_client.move_to(channel)
+            Music_model.rejoin(ctx.guild.id, ctx.voice_client.channel.id)
             await ctx.send(f'{client.user.name} перемещен к вам: {channel}')
     else:
         await channel.connect()
+        Music_model.join(ctx.guild.id, ctx.voice_client.channel.id, ctx.channel.id)
         await ctx.send(f'{client.user.name} на связи: {channel}')
 
 
@@ -37,6 +39,27 @@ async def on_connect():
 async def on_disconnect():
     Music_model.disconnected()
     logs('bot disconnected')
+
+
+@client.event
+async def on_voice_state_update(member, before, after):
+    print(1)
+#    if after.channel is None and Music_model.is_connect_in_this_guild(member.guild.id) and member.id != ID:
+#        channel_info = Music_model.get_voice_connection(member.guild.id)
+#        if len(client.get_channel(channel_info[0]).members) == 1:
+#            voice = get(client.voice_clients, guild=member.guild)
+#            if voice:
+#                await voice.disconnect()
+#            await (await client.fetch_channel(channel_info[1])).send('Бот отключет от голосового канала из-за не наличия юзеров')
+#            Music_model.voice_disconnected(member.guild.id)
+#    elif after.channel is not None and Music_model.is_connect_in_this_guild(member.guild.id):
+#        channel_info = Music_model.get_voice_connection(member.guild.id)
+#        if len(client.get_channel(channel_info[0]).members) == 1:
+#            voice = get(client.voice_clients, guild=member.guild)
+#            if voice:
+#                await voice.disconnect()
+#            await (await client.fetch_channel(channel_info[1])).send(
+#                'Бот отключет от голосового канала из-за не наличия юзеров')
 
 
 @client.command(pass_context=True, aliases=['hi', 'hell', 'hel', 'Hello', 'HELLO', 'Hi', 'HI'],
@@ -66,6 +89,7 @@ async def leave(ctx):
     if voice and voice.is_connected():
         if voice and (voice.is_playing() or voice.is_paused()):
             Music_model.leave(ctx.guild.id, ctx.voice_client)
+        Music_model.voice_disconnected(ctx.guild.id)
         await voice.disconnect()
         await ctx.send(f'{client.user.name} отключился от канала')
 
@@ -76,6 +100,7 @@ async def play(ctx):
     text = ctx.message.content.replace(ctx.message.content.split()[0], '')
 
     if text == '' or text == ' ' or not text:
+        await join_in_voice(ctx)
         output = Music_model.start_play(ctx.guild.id, ctx.voice_client)
         if not output == '' and not output == ' ' and output:
             await ctx.send(output)
@@ -88,20 +113,19 @@ async def play(ctx):
                 output = Music_model.add_song_in_playlist(ctx.guild.id, int(text[1:]))
 
                 if output[0] and (not ctx.voice_client):
+                    try:
+                        await (await ctx.fetch_message(Music_model.pop_message(ctx.guild.id))).delete()
+                    except Exception as ex:
+                        logs("Don't have permission for delete search message(" + str(ex) + ')')
                     await join_in_voice(ctx)
                     await ctx.send(output[1])
                     output = Music_model.start_play(ctx.guild.id, ctx.voice_client)
                     if not output == '' and not output == ' ' and output:
                         await ctx.send(output)
-                elif ctx.voice_client:
-                    if not ctx.voice_client.is_playing() and not ctx.voice_client.is_paused():
-                        await join_in_voice(ctx)
-                        await ctx.send(output[1])
-                        await ctx.send(Music_model.play(text[1:], ctx.guild.id, ctx.voice_client))
                 else:
                     await ctx.send(output[1])
             else:
-                await ctx.send(Music_model.search(ctx.guild.id, text[1:]))
+                Music_model.add_message(ctx.guild.id, (await ctx.send(Music_model.search(ctx.guild.id, text[1:]))).id)
 
 
 @client.command(pass_context=True, aliases=['Pause', 'PAUSE'], help='Приостановка воспроизведения аудио')
@@ -157,7 +181,7 @@ async def loop(ctx):
     if looping == '' or looping == ' ' or not looping:
         await ctx.send(Music_model.get_looping(ctx.guild.id))
     else:
-        looping.replace(' ', '')
+        looping = looping[1:]
         if looping == 'single' or looping == 'all' or looping == 'off':
             await ctx.send(Music_model.set_looping(ctx.guild.id, looping))
 
