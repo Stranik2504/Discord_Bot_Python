@@ -1,0 +1,6 @@
+discord.py
+datetime
+requests
+validators
+youtube_dl
+discord.py[voice]
