@@ -209,9 +209,12 @@ async def history(ctx):
 		output = ''
 
 		for song in songs:
-			output += 'Name song: ' + song['name'] + ', url: ' + song['url'] + '\n'
+			output += 'Name song: ' + str(song['name']) + ', url: ' + str(song['url']) + '\n'
 
-		await ctx.send(output)
+		if output != '' and output != ' ' and output:
+			await ctx.send(output)
+		else:
+			await ctx.send('None')
 	except Exception as ex:
 		logs('[Bot][history]: ' + str(ex))
 		await ctx.send('Ошибка')
@@ -281,7 +284,7 @@ async def restart(ctx):
 async def seek(ctx, *, time: int):
 	try:
 		output = Music_model.start_play_seek(ctx.guild.id, ctx.voice_client, time)
-		if output == '' or output == ' ' or not output:
+		if output == '' or output == ' ' or output:
 			await ctx.send(output)
 		else:
 			await ctx.send(f'Песня пересена на позицию {time}')

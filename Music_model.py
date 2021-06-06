@@ -317,9 +317,9 @@ def get_history(guild_id):
             name = info['title']
 
             if not output:
-                output = list({'name': name, 'url': History[str(guild_id)]})
-            else:
-                output.append({'name': name, 'url': History[str(guild_id)]})
+                output = list()
+
+            output.append({'name': name, 'url': i})
 
         return output
     except Exception as ex:
@@ -408,10 +408,10 @@ def restart(guild_id, voice):
         if voice:
             if ListSong and ListSong.get(str(guild_id)) and len(ListSong[str(guild_id)]['songs']) > 0:
                 if ListSong[str(guild_id)]['looping'] == 'off':
-                    ListSong[str(guild_id)]['songs'].insert(ListSong[str(guild_id)]['songs'][0], 0)
+                    ListSong[str(guild_id)]['songs'].insert(0, ListSong[str(guild_id)]['songs'][0])
                 elif ListSong[str(guild_id)]['looping'] == 'all':
                     ListSong[str(guild_id)]['looping'] = 'all/reset'
-                    ListSong[str(guild_id)]['songs'].insert(ListSong[str(guild_id)]['songs'][0], 0)
+                    ListSong[str(guild_id)]['songs'].insert(0, ListSong[str(guild_id)]['songs'][0])
 
                 voice.stop()
 
